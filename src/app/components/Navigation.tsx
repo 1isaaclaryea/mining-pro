@@ -15,6 +15,7 @@ export function Navigation({ activePage, onNavigate }: NavigationProps) {
     { name: 'About Us', id: 'about' },
     { name: 'Services', id: 'services' },
     { name: 'Projects', id: 'projects' },
+    { name: 'MET Modules', id: 'calculations' },
     { name: 'Safety & Quality', id: 'safety' },
     { name: 'Careers', id: 'careers' },
     { name: 'Contact', id: 'contact' },

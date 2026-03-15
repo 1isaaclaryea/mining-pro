@@ -8,6 +8,7 @@ import { ProjectsPage } from './pages/ProjectsPage';
 import { SafetyPage } from './pages/SafetyPage';
 import { CareersPage } from './pages/CareersPage';
 import { ContactPage } from './pages/ContactPage';
+import { CalculationsSuitePage } from './pages/CalculationsSuitePage';
 
 export default function App() {
   const [activePage, setActivePage] = useState('home');
@@ -32,6 +33,8 @@ export default function App() {
         return <ServicesPage onNavigate={handleNavigate} />;
       case 'projects':
         return <ProjectsPage onNavigate={handleNavigate} />;
+      case 'calculations':
+        return <CalculationsSuitePage />;
       case 'safety':
         return <SafetyPage />;
       case 'careers':
