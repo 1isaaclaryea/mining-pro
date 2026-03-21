@@ -1,5 +1,5 @@
 ﻿import { FormEvent, useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { ApiError } from "../../lib/authApi";
@@ -49,6 +49,13 @@ export function LoginPage() {
   return (
     <div className="min-h-screen bg-secondary flex items-center justify-center px-4">
       <form onSubmit={onSubmit} className="w-full max-w-md bg-white border border-border rounded-xl p-8 shadow-lg space-y-4">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 px-1 py-1 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+        >
+          <ArrowLeft size={16} />
+          Back to website
+        </Link>
         <h1 className="text-2xl font-bold text-foreground">Sign in</h1>
         <p className="text-sm text-muted-foreground">Access MiningPro MET modules</p>
         {error && <div className="text-sm text-red-600">{error}</div>}
