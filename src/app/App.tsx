@@ -10,6 +10,7 @@ import { SafetyPage } from "./pages/SafetyPage";
 import { CareersPage } from "./pages/CareersPage";
 import { ContactPage } from "./pages/ContactPage";
 import { CalculationsSuitePage } from "./pages/CalculationsSuitePage";
+import { PricingPage } from "./pages/PricingPage";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 import { ProtectedRoute } from "./auth/components/ProtectedRoute";
 import { LoginPage } from "./auth/pages/LoginPage";
@@ -25,6 +26,7 @@ const pageToPath: Record<string, string> = {
   services: "/services",
   projects: "/projects",
   calculations: "/calculations",
+  pricing: "/pricing",
   safety: "/safety",
   careers: "/careers",
   contact: "/contact",
@@ -82,6 +84,7 @@ function AppShell() {
               </ProtectedRoute>
             }
           />
+          <Route path="/pricing" element={<PricingPage />} />
 
           <Route path="/auth/login" element={<LoginPage />} />
           <Route path="/auth/signup" element={<SignupPage />} />

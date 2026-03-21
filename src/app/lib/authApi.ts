@@ -1,9 +1,22 @@
-﻿export interface AuthUser {
+export type ModuleCode = "ball-charge" | "power-wear-insights" | "throughput" | "power-draw" | "liner-wear";
+
+export interface ModuleSubscription {
+  moduleCode: ModuleCode;
+  status: "ACTIVE" | "INACTIVE";
+  planCode?: string;
+  currentPeriodEnd?: string;
+  paystackCustomerCode?: string;
+  paystackSubscriptionCode?: string;
+  lastPaymentAt?: string;
+}
+
+export interface AuthUser {
   id: string;
   email: string;
   fullName: string;
   role: "USER" | "ADMIN";
   isEmailVerified: boolean;
+  moduleSubscriptions: ModuleSubscription[];
 }
 
 export class ApiError extends Error {
@@ -17,7 +30,7 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000/api
 
 type JsonBody = Record<string, unknown> | undefined;
 
-async function request<T>(path: string, method: string, body?: JsonBody, accessToken?: string): Promise<T> {
+export async function request<T>(path: string, method: string, body?: JsonBody, accessToken?: string): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     method,
     credentials: "include",

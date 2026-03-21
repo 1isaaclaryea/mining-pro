@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -18,6 +18,9 @@ import {
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Alert, AlertDescription } from "../components/ui/alert";
+import { useAuth } from "../auth/AuthContext";
+import { type ModuleCode } from "../lib/authApi";
+import { paymentsApi } from "../lib/paymentsApi";
 import sagMillImage from "../../assets/32219f7f656f576ccd950e5f4a055779530640a4.png";
 import sagMillResultImage from "../../assets/0f9f38c59801f3ae74cbe2797e0e22109ca09da0.png";
 import calcLogoImage from "../../assets/aef85ff4ad46a975a6c9df202364d28d45a23c17.png";
@@ -30,12 +33,21 @@ type CalculationResults = {
   percentageBallCharge: number;
 };
 
-type ActiveTool = "home" | "ball-charge";
+type ActiveTool =
+  | "home"
+  | "ball-charge"
+  | "power-wear-insights"
+  | "throughput"
+  | "power-draw"
+  | "liner-wear";
+type PaidModuleCode = "power-wear-insights" | "throughput" | "power-draw" | "liner-wear";
 
 function BallChargeCalculator({
   onBack,
+  title = "Percentage Ball Charge Calculator",
 }: {
   onBack: () => void;
+  title?: string;
 }) {
   const [stage, setStage] = useState<1 | 2>(1);
   const [cordLength1, setCordLength1] = useState("");
@@ -111,7 +123,7 @@ function BallChargeCalculator({
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-base font-semibold text-gray-900">
-                  Percentage Ball Charge Calculator
+                  {title}
                 </h2>
                 <p className="text-xs text-gray-500">SAG Mill Analysis</p>
               </div>
@@ -161,7 +173,7 @@ function BallChargeCalculator({
                 <img src={calcLogoImage} alt="Logo" className="w-24" />
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900">
-                    Percentage Ball Charge Calculator
+                    {title}
                   </h2>
                   <p className="text-sm text-gray-500">SAG Mill Analysis</p>
                 </div>
@@ -387,8 +399,16 @@ function BallChargeCalculator({
 
 function CalculationsHome({
   onSelectTool,
+  onSubscribe,
+  isModuleActive,
+  submittingModuleCode,
+  message,
 }: {
   onSelectTool: (tool: ActiveTool) => void;
+  onSubscribe: (moduleCode: PaidModuleCode) => Promise<void>;
+  isModuleActive: (moduleCode: ModuleCode) => boolean;
+  submittingModuleCode: PaidModuleCode | null;
+  message: string | null;
 }) {
   const calculations = [
     {
@@ -401,12 +421,13 @@ function CalculationsHome({
       free: true,
     },
     {
-      id: "throughput" as ActiveTool,
-      title: "Mill Throughput Analysis",
-      description: "Analyze and optimize mill throughput performance",
+      id: "power-wear-insights" as ActiveTool,
+      title: "Power & Wear Insights",
+      description: "Advanced monitoring for power draw behavior and liner wear insights.",
       icon: Calculator,
-      available: false,
+      available: true,
       free: false,
+      price: "GHS 700/mo",
     },
     {
       id: "power-draw" as ActiveTool,
@@ -415,6 +436,7 @@ function CalculationsHome({
       icon: Calculator,
       available: false,
       free: false,
+      price: "GHS 700/mo",
     },
     {
       id: "liner-wear" as ActiveTool,
@@ -423,6 +445,16 @@ function CalculationsHome({
       icon: Calculator,
       available: false,
       free: false,
+      price: "GHS 700/mo",
+    },
+    {
+      id: "throughput" as ActiveTool,
+      title: "Mill Throughput Analysis",
+      description: "Analyze and optimize mill throughput performance",
+      icon: Calculator,
+      available: false,
+      free: false,
+      price: "GHS 700/mo",
     },
   ];
 
@@ -469,8 +501,16 @@ function CalculationsHome({
             {calculations.map((calc) => (
               <div
                 key={calc.id}
-                className={`group ${!calc.available ? "pointer-events-none opacity-60" : "cursor-pointer"}`}
-                onClick={() => calc.available && onSelectTool(calc.id)}
+                className={`group ${calc.available ? "cursor-pointer" : "opacity-75"}`}
+                onClick={() => {
+                  if (!calc.free && calc.available && isModuleActive(calc.id as ModuleCode)) {
+                    onSelectTool(calc.id);
+                    return;
+                  }
+                  if (calc.available && calc.free) {
+                    onSelectTool(calc.id);
+                  }
+                }}
               >
                 <div
                   className={`h-full bg-white p-8 rounded-lg border border-border transition-all duration-200 ${
@@ -511,10 +551,42 @@ function CalculationsHome({
                       </span>
                     )}
                   </div>
+                  {!calc.free && (
+                    <div className="mt-4 space-y-2">
+                      <div className="text-sm font-semibold text-foreground">{calc.price}</div>
+                    {isModuleActive(calc.id as ModuleCode) ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-200">
+                          Active subscription
+                        </span>
+                      ) : (
+                        <Button
+                          className="w-full"
+                          disabled={
+                            !calc.available ||
+                            submittingModuleCode === (calc.id as PaidModuleCode)
+                          }
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            if (!calc.available) {
+                              return;
+                            }
+                            onSubscribe(calc.id as PaidModuleCode);
+                          }}
+                        >
+                          {submittingModuleCode === (calc.id as PaidModuleCode)
+                            ? "Opening checkout..."
+                            : "Subscribe"}
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
           </div>
+          {message && (
+            <div className="mt-6 text-center text-sm text-primary">{message}</div>
+          )}
         </div>
       </div>
     </div>
@@ -522,13 +594,95 @@ function CalculationsHome({
 }
 
 export function CalculationsSuitePage() {
+  const { accessToken, user, isAuthenticated, refresh } = useAuth();
   const [activeTool, setActiveTool] = useState<ActiveTool>("home");
+  const [submittingModuleCode, setSubmittingModuleCode] = useState<PaidModuleCode | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+
+  const activeModules = useMemo(() => {
+    const active = new Set<ModuleCode>(["ball-charge"]);
+    if (user?.role === "ADMIN") {
+      active.add("power-wear-insights");
+      active.add("throughput");
+      active.add("power-draw");
+      active.add("liner-wear");
+      return active;
+    }
+
+    for (const subscription of user?.moduleSubscriptions || []) {
+      if (subscription.status === "ACTIVE") {
+        active.add(subscription.moduleCode);
+      }
+    }
+
+    return active;
+  }, [user]);
+
+  const handleSubscribe = async (moduleCode: PaidModuleCode) => {
+    if (!isAuthenticated || !accessToken) {
+      setMessage("Please log in to continue with payment.");
+      return;
+    }
+
+    setSubmittingModuleCode(moduleCode);
+    setMessage(null);
+    try {
+      const initialized = await paymentsApi.initialize(accessToken, moduleCode);
+      if (initialized.bypass) {
+        await refresh();
+        setMessage("Module access is already active.");
+        return;
+      }
+
+      if (
+        !initialized.publicKey ||
+        !initialized.email ||
+        !initialized.amountMinor ||
+        !initialized.currency ||
+        !initialized.reference ||
+        !initialized.planCode
+      ) {
+        throw new Error("Invalid payment initialization response");
+      }
+
+      if (!initialized.authorizationUrl) {
+        throw new Error("Invalid payment initialization response");
+      }
+
+      setMessage("Redirecting to secure checkout...");
+      window.location.assign(initialized.authorizationUrl);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Unable to start checkout.");
+    } finally {
+      setSubmittingModuleCode(null);
+    }
+  };
 
   if (activeTool === "ball-charge") {
     return (
-      <BallChargeCalculator onBack={() => setActiveTool("home")} />
+      <BallChargeCalculator
+        onBack={() => setActiveTool("home")}
+        title="Percentage Ball Charge Calculator"
+      />
     );
   }
 
-  return <CalculationsHome onSelectTool={setActiveTool} />;
+  if (activeTool === "power-wear-insights") {
+    return (
+      <BallChargeCalculator
+        onBack={() => setActiveTool("home")}
+        title="Power & Wear Insights Calculator"
+      />
+    );
+  }
+
+  return (
+    <CalculationsHome
+      onSelectTool={setActiveTool}
+      onSubscribe={handleSubscribe}
+      isModuleActive={(moduleCode) => activeModules.has(moduleCode)}
+      submittingModuleCode={submittingModuleCode}
+      message={message}
+    />
+  );
 }
