@@ -78,12 +78,6 @@ export function AuthShell({ eyebrow, title, description, children, footer }: Aut
                 ))}
               </div>
             </div>
-
-            <div className="mt-8 flex items-center justify-between rounded-3xl border border-white/12 bg-white/7 px-5 py-4 text-sm text-white/75 backdrop-blur-md">
-              <span>Mining process engineering</span>
-              <span>Project delivery</span>
-              <span>Operational support</span>
-            </div>
           </div>
         </section>
 
