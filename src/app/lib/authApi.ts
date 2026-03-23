@@ -31,7 +31,10 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000/api
 type JsonBody = Record<string, unknown> | undefined;
 
 export async function request<T>(path: string, method: string, body?: JsonBody, accessToken?: string): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`, {
+  const url = `${API_BASE}${path}`;
+  console.log(`API Request: ${method} ${url}`, { body, hasAccessToken: !!accessToken });
+  
+  const response = await fetch(url, {
     method,
     credentials: "include",
     headers: {
@@ -41,14 +44,19 @@ export async function request<T>(path: string, method: string, body?: JsonBody, 
     body: body ? JSON.stringify(body) : undefined,
   });
 
+  console.log(`API Response: ${response.status} ${response.statusText}`);
+
   if (!response.ok) {
     const payload = await response.json().catch(() => ({}));
+    console.error("API Error Response:", payload);
     const message = payload?.error?.message || "Request failed";
     const code = payload?.error?.code;
     throw new ApiError(message, code);
   }
 
-  return response.json();
+  const result = await response.json();
+  console.log("API Success Response:", result);
+  return result;
 }
 
 export const authApi = {

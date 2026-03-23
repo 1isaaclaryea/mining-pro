@@ -15,11 +15,24 @@ export function VerifyEmailPage() {
   const [resendInfo, setResendInfo] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!token) return;
+    console.log("VerifyEmailPage - Token from URL:", token);
+    console.log("VerifyEmailPage - Current URL:", window.location.href);
+    
+    if (!token) {
+      console.log("VerifyEmailPage - No token found in URL");
+      return;
+    }
 
+    console.log("VerifyEmailPage - Attempting to verify email with token");
     verifyEmail(token)
-      .then(() => setStatus("success"))
-      .catch(() => setStatus("error"));
+      .then(() => {
+        console.log("VerifyEmailPage - Email verification successful");
+        setStatus("success");
+      })
+      .catch((error) => {
+        console.error("VerifyEmailPage - Email verification failed:", error);
+        setStatus("error");
+      });
   }, [token]);
 
   const onResend = async (event: FormEvent) => {

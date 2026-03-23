@@ -63,7 +63,7 @@ export function AuthShell({ eyebrow, title, description, children, footer }: Aut
                   Minimal friction. Serious engineering intent.
                 </h1>
                 <p className="max-w-lg text-lg leading-8 text-white/78">
-                  Access MiningPro tools through a focused interface shaped by the same visual language as the main website.
+                  Unlock specialized MET engineering tools through a purpose-built interface designed for mining process optimization and operational excellence.
                 </p>
               </div>
               <div className="grid gap-3">
