@@ -26,10 +26,11 @@ import sagMillResultImage from "../../assets/0f9f38c59801f3ae74cbe2797e0e22109ca
 import calcLogoImage from "../../assets/aef85ff4ad46a975a6c9df202364d28d45a23c17.png";
 
 type CalculationResults = {
-  centralAngle: number;
-  areaOfCircle: number;
+  heightOfTriangle: number;
+  areaOfTriangle: number;
   areaOfSector: number;
-  lengthOfSector: number;
+  areaOfSegment: number;
+  areaOfCircle: number;
   percentageBallCharge: number;
 };
 
@@ -50,28 +51,29 @@ function BallChargeCalculator({
   title?: string;
 }) {
   const [stage, setStage] = useState<1 | 2>(1);
-  const [cordLength1, setCordLength1] = useState("");
-  const [cordLength2, setCordLength2] = useState("");
-  const [cordLength3, setCordLength3] = useState("");
+  const [chordLength, setChordLength] = useState("");
+  const [radius, setRadius] = useState("");
+  const [centralAngle, setCentralAngle] = useState("");
   const [results, setResults] = useState<CalculationResults | null>(null);
 
   const calculateResults = (): CalculationResults => {
-    const c1 = parseFloat(cordLength1);
-    const c2 = parseFloat(cordLength2);
-    const c3 = parseFloat(cordLength3);
+    const Y = parseFloat(chordLength);
+    const R = parseFloat(radius);
+    const theta = parseFloat(centralAngle);
 
-    const radius = (c1 + c2 + c3) / 3;
-    const centralAngle = 2 * Math.asin(c1 / (2 * radius)) * (180 / Math.PI);
-    const areaOfCircle = Math.PI * radius * radius;
-    const areaOfSector = (centralAngle / 360) * areaOfCircle;
-    const lengthOfSector = (centralAngle / 360) * 2 * Math.PI * radius;
-    const percentageBallCharge = ((c1 * c2) / (radius * radius)) * 25;
+    const H = Math.sqrt(R ** 2 - (Y / 2) ** 2);           // Step 1: Height of triangle
+    const A = 0.5 * H * Y;                                 // Step 2: Area of triangle
+    const As = (R ** 2 * theta * 3.142) / 360;             // Step 3: Area of sector
+    const Asg = As - A;                                     // Step 4: Area of segment
+    const Ac = 3.14 * R ** 2;                               // Step 5: Area of circle
+    const percentageBallCharge = (Asg / Ac) * 100;         // Step 6: % Ball charge
 
     return {
-      centralAngle: parseFloat(centralAngle.toFixed(2)),
-      areaOfCircle: parseFloat(areaOfCircle.toFixed(2)),
-      areaOfSector: parseFloat(areaOfSector.toFixed(2)),
-      lengthOfSector: parseFloat(lengthOfSector.toFixed(2)),
+      heightOfTriangle: parseFloat(H.toFixed(4)),
+      areaOfTriangle: parseFloat(A.toFixed(4)),
+      areaOfSector: parseFloat(As.toFixed(4)),
+      areaOfSegment: parseFloat(Asg.toFixed(4)),
+      areaOfCircle: parseFloat(Ac.toFixed(4)),
       percentageBallCharge: parseFloat(percentageBallCharge.toFixed(2)),
     };
   };
@@ -85,9 +87,9 @@ function BallChargeCalculator({
 
   const handleReset = () => {
     setStage(1);
-    setCordLength1("");
-    setCordLength2("");
-    setCordLength3("");
+    setChordLength("");
+    setRadius("");
+    setCentralAngle("");
     setResults(null);
   };
 
@@ -99,7 +101,7 @@ function BallChargeCalculator({
     }
   };
 
-  const isFormValid = cordLength1 && cordLength2 && cordLength3;
+  const isFormValid = chordLength && radius && centralAngle;
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -253,56 +255,56 @@ function BallChargeCalculator({
               <Card className="border-gray-200 bg-white shadow-sm">
                 <CardHeader>
                   <CardTitle className="text-gray-900">
-                    Step 1: Chord Length Measurements
+                    Step 1: Mill Measurements
                   </CardTitle>
                   <CardDescription className="text-gray-600">
-                    Enter the three chord length measurements (in meters)
+                    Enter the chord length, radius, and central angle
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="cord1" className="text-gray-700">
-                          Chord Length 1
+                        <Label htmlFor="chord-y" className="text-gray-700">
+                          Length of Chord (Y) — m
                         </Label>
                         <Input
-                          id="cord1"
+                          id="chord-y"
                           type="number"
                           step="0.01"
                           placeholder="0.00"
-                          value={cordLength1}
-                          onChange={(e) => setCordLength1(e.target.value)}
+                          value={chordLength}
+                          onChange={(e) => setChordLength(e.target.value)}
                           className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-400"
                           required
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="cord2" className="text-gray-700">
-                          Chord Length 2
+                        <Label htmlFor="radius" className="text-gray-700">
+                          Radius R — m
                         </Label>
                         <Input
-                          id="cord2"
+                          id="radius"
                           type="number"
                           step="0.01"
                           placeholder="0.00"
-                          value={cordLength2}
-                          onChange={(e) => setCordLength2(e.target.value)}
+                          value={radius}
+                          onChange={(e) => setRadius(e.target.value)}
                           className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-400"
                           required
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="cord3" className="text-gray-700">
-                          Chord Length 3
+                        <Label htmlFor="central-angle" className="text-gray-700">
+                          Central Angle (θ) — °
                         </Label>
                         <Input
-                          id="cord3"
+                          id="central-angle"
                           type="number"
                           step="0.01"
                           placeholder="0.00"
-                          value={cordLength3}
-                          onChange={(e) => setCordLength3(e.target.value)}
+                          value={centralAngle}
+                          onChange={(e) => setCentralAngle(e.target.value)}
                           className="bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-400"
                           required
                         />
@@ -351,30 +353,36 @@ function BallChargeCalculator({
                     </div>
                     <div className="space-y-3">
                       <div className="text-sm text-gray-600 uppercase tracking-wide font-medium mb-3">
-                        Additional Calculations
+                        Intermediate Calculations
                       </div>
                       <div className="flex justify-between items-center p-3 rounded-lg bg-gray-50 border border-gray-200">
-                        <span className="text-gray-600">Central Angle</span>
+                        <span className="text-gray-600">Height of Triangle (H)</span>
                         <span className="text-gray-900 font-medium">
-                          {results.centralAngle}°
+                          {results.heightOfTriangle} m
                         </span>
                       </div>
                       <div className="flex justify-between items-center p-3 rounded-lg bg-gray-50 border border-gray-200">
-                        <span className="text-gray-600">Area of Circle</span>
+                        <span className="text-gray-600">Area of Triangle (A)</span>
                         <span className="text-gray-900 font-medium">
-                          {results.areaOfCircle} m²
+                          {results.areaOfTriangle} m²
                         </span>
                       </div>
                       <div className="flex justify-between items-center p-3 rounded-lg bg-gray-50 border border-gray-200">
-                        <span className="text-gray-600">Area of Sector</span>
+                        <span className="text-gray-600">Area of Sector (As)</span>
                         <span className="text-gray-900 font-medium">
                           {results.areaOfSector} m²
                         </span>
                       </div>
                       <div className="flex justify-between items-center p-3 rounded-lg bg-gray-50 border border-gray-200">
-                        <span className="text-gray-600">Length of Sector</span>
+                        <span className="text-gray-600">Area of Segment (Asg)</span>
                         <span className="text-gray-900 font-medium">
-                          {results.lengthOfSector} m
+                          {results.areaOfSegment} m²
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 rounded-lg bg-gray-50 border border-gray-200">
+                        <span className="text-gray-600">Area of Circle (Ac)</span>
+                        <span className="text-gray-900 font-medium">
+                          {results.areaOfCircle} m²
                         </span>
                       </div>
                     </div>
